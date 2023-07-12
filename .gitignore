@@ -1,0 +1,5 @@
+qrtest.py
+db.sqlite3
+env
+.vscode
+qr_code.png
