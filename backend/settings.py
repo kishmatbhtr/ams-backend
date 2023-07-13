@@ -26,6 +26,8 @@ SECRET_KEY = "django-insecure-ugsspr1egl(au%i4c*vprpq+1g*pnvnzp-&*f8o1l1x$8f&24j
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CORS_ALLOW_ALL_ORIGINS = True
+
 AUTH_USER_MODEL = "ams.User"
 
 

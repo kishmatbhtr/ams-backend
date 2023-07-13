@@ -1,21 +1,10 @@
 from typing import Dict
 
-import qrcode
 from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import PunchIn, User
-from .utils import image_to_bytes, upload_image_to_minio
-
-
-def generate_qr_image(user_data, firstName):
-
-    qr_image = qrcode.make(user_data)
-    image_bytes = image_to_bytes(qr_image)
-    image_url = upload_image_to_minio(image_bytes, firstName)
-
-    return image_url
+from .models import PunchIn, User, UserProfile
 
 
 class LoginSerializer(serializers.Serializer):
@@ -50,11 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         user.set_password(validated_data["password"])
-
-        # image_url = generate_qr_image(user.email, user.first_name)
-
-        # profile = UserProfile(user=user, profile_img=image_url)
-        # profile.save()
+        user.save()
 
         return user
 
@@ -64,3 +49,12 @@ class PunchInSerializer(serializers.ModelSerializer):
 
         model = PunchIn
         fields = "__all__"
+
+
+# TODO : create UserProfileSerializer
+
+# class UserProfileSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = UserProfile
+#         fields = ("id","profile_img")

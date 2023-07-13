@@ -3,6 +3,7 @@ import json
 import os
 import uuid
 
+import qrcode
 from minio import Minio
 
 # from minio.error import ResponseError
@@ -67,3 +68,12 @@ def image_to_bytes(image) -> bytes:
     byte_array = byte_stream.getvalue()
 
     return byte_array
+
+
+def generate_qr_image(user_data, firstName):
+
+    qr_image = qrcode.make(user_data)
+    image_bytes = image_to_bytes(qr_image)
+    image_url = upload_image_to_minio(image_bytes, firstName)
+
+    return image_url
