@@ -1,13 +1,21 @@
+from django.contrib.auth import authenticate
 from django.http import HttpResponse
 from rest_framework import permissions, viewsets
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 
-from .models import PunchIn, User
-from .serializers import PunchInSerializer, UserSerializer
+from .models import PunchIn, User, UserProfile
+from .serializers import (
+    LoginSerializer,
+    LoginTokenSerializer,
+    PunchInSerializer,
+    UserSerializer,
+)
 
 
 def home(request):
-    return HttpResponse("Hello")
+    return HttpResponse("Hello1")
 
 
 class UserView(viewsets.ModelViewSet):
@@ -20,6 +28,35 @@ class UserView(viewsets.ModelViewSet):
     #     print(users)
     #     serializer = UserSerializer(users, many=True)
     #     return Response(serializer.data)
+
+
+class LoginView(CreateAPIView):
+    queryset = [
+        {"email": "random@test.com"},
+        {"password": "password"},
+    ]
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+
+        email = request.data["email"]
+        password = request.data["password"]
+
+        user = authenticate(username=email, password=password)
+        if user is not None:
+
+            refresh_token = LoginTokenSerializer.get_token(user)
+
+            response_data = {
+                "access": str(refresh_token.access_token),
+                "refresh": str(refresh_token),
+                "userId": user.id,
+                "first_name": user.first_name,
+            }
+            return Response(response_data)
+
+        else:
+            raise AuthenticationFailed()
 
 
 class PunchInView(viewsets.ModelViewSet):

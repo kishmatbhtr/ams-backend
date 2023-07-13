@@ -2,6 +2,8 @@ from typing import Dict
 
 import qrcode
 from rest_framework import serializers
+from rest_framework.response import Response
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import PunchIn, User
 from .utils import image_to_bytes, upload_image_to_minio
@@ -11,7 +13,23 @@ def generate_qr_image(user_data, firstName):
 
     qr_image = qrcode.make(user_data)
     image_bytes = image_to_bytes(qr_image)
-    upload_image_to_minio(image_bytes, firstName)
+    image_url = upload_image_to_minio(image_bytes, firstName)
+
+    return image_url
+
+
+class LoginSerializer(serializers.Serializer):
+    """This is only for documentation"""
+
+    email = serializers.CharField()
+    password = serializers.CharField()
+
+
+class LoginTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        return token
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,8 +51,10 @@ class UserSerializer(serializers.ModelSerializer):
 
         user.set_password(validated_data["password"])
 
-        generate_qr_image(user.email, user.first_name)
-        # print(user.email)
+        # image_url = generate_qr_image(user.email, user.first_name)
+
+        # profile = UserProfile(user=user, profile_img=image_url)
+        # profile.save()
 
         return user
 
