@@ -15,4 +15,5 @@ urlpatterns = [
     path("login/", v.LoginView.as_view(), name="login"),
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("gen-qr/<str:pk>", v.generate_qr_view),
+    path("profile-img/", v.upload_profile_img),
 ]

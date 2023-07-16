@@ -39,6 +39,7 @@ class UserProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     qr_image = models.URLField(max_length=200, default="")
     profile_img = models.URLField(max_length=200, default="")
+    identity_doc = models.URLField(max_length=200, default="")
 
     def __str__(self) -> str:
         return self.profile_img

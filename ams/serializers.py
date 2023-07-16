@@ -53,8 +53,8 @@ class PunchInSerializer(serializers.ModelSerializer):
 
 # TODO : create UserProfileSerializer
 
-# class UserProfileSerializer(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = UserProfile
-#         fields = ("id","profile_img")
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ("id", "profile_img", "qr_img")

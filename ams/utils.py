@@ -36,10 +36,10 @@ policy: dict = {
 }
 
 
-def upload_image_to_minio(image_bytes: bytes, firstName: str) -> str:
+def upload_image_to_minio(image_bytes: bytes, fileName: str) -> str:
 
     random_4digit: str = str(uuid.uuid4().fields[-1])[:4]
-    object_name: str = firstName + "-" + random_4digit + ".png"
+    object_name: str = fileName + "-" + random_4digit + ".png"
 
     print(object_name)
 
