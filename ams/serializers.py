@@ -43,16 +43,15 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
-    def update(self, validated_data: Dict):
+    # def update(self, instance, validated_data: Dict):
 
-        user = User.objects.get(
-            email=validated_data["email"],
-        )
+    #     instance.first_name = validated_data.get("first_name", instance.first_name)
+    #     instance.last_name = validated_data.get("last_name", instance.last_name)
 
-        user.set_password(validated_data["password"])
-        user.save()
+    #     instance.set_password(validated_data["password"])
+    #     instance.save()
 
-        return user
+    #     return instance
 
 
 class PunchInSerializer(serializers.ModelSerializer):

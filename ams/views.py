@@ -94,6 +94,24 @@ def upload_profile_img(request):
     return HttpResponse("Success")
 
 
+@permission_classes([permissions.IsAuthenticated])
+@api_view(["POST"])
+def upload_identity_doc(request):
+
+    image_bytes = request.data["identity-doc"]
+    user = request.user
+    print(user)
+    profile = UserProfile.objects.get_or_create(user=user)
+    profile.qr_image = upload_image_to_minio(
+        image_bytes, user.first_name + "identity-doc"
+    )
+    profile.save()
+
+    print(profile[0].user)
+
+    return HttpResponse("Success")
+
+
 @permission_classes([permissions.IsAdminUser])
 @api_view(["GET"])
 def generate_qr_view(request, pk):
@@ -106,3 +124,23 @@ def generate_qr_view(request, pk):
     print(profile[0].user)
 
     return HttpResponse("Success")
+
+
+@api_view(["POST"])
+def updateUserData(request):
+    """
+    {
+    "id": 6,
+    "password": "apple456",
+    "role": 3
+    }
+    """
+    user = User.objects.get(id=request.data["id"])
+
+    if request.data["password"]:
+        user.set_password(request.data["password"])
+    if request.data["role"]:
+        user.role = request.data["role"]
+    user.save()
+
+    return HttpResponse("Updated Successfully")
