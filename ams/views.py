@@ -36,7 +36,6 @@ class UserView(viewsets.ModelViewSet):
 
     def list(self, reqeust):
         users = User.objects.filter(role=3)
-        print(users)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -63,6 +62,7 @@ class LoginView(CreateAPIView):
                 "refresh": str(refresh_token),
                 "userId": user.id,
                 "first_name": user.first_name,
+                "role": user.role,
             }
             return Response(response_data)
 
