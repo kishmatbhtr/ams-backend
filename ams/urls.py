@@ -16,5 +16,7 @@ urlpatterns = [
     path("login/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("gen-qr/<str:pk>", v.generate_qr_view),
     path("profile-img/", v.upload_profile_img),
+    path("identity-doc/", v.upload_identity_doc),
     path("update-user/", v.updateUserData),
+    path("verify-qr/", v.verify_qr),
 ]

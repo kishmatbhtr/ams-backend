@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate
 from django.http import HttpResponse
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import CreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+
+from backend.configurations.ams_expection import AMSException
 
 from .models import PunchIn, User, UserProfile
 from .serializers import (
@@ -15,7 +17,7 @@ from .serializers import (
     UserProfileSerializer,
     UserSerializer,
 )
-from .utils import generate_qr_image, upload_image_to_minio
+from .utils import decode_base64_qrimage_data, generate_qr_image, upload_image_to_minio
 
 
 def home(request):
@@ -84,32 +86,37 @@ def upload_profile_img(request):
     user = request.user
     print(user)
     profile = UserProfile.objects.get_or_create(user=user)
-    profile.qr_image = upload_image_to_minio(
-        image_bytes, user.first_name + "profile-img"
-    )
+    image = upload_image_to_minio(image_bytes, user.first_name + "profile-img")
+    profile.qr_image = image
     profile.save()
 
     print(profile[0].user)
 
-    return HttpResponse("Success")
+    return Response(
+        {"message": "Profile Pic Uploaded successfully", "userId": user.id},
+        status.HTTP_200_OK,
+    )
 
 
 @permission_classes([permissions.IsAuthenticated])
 @api_view(["POST"])
 def upload_identity_doc(request):
 
-    image_bytes = request.data["identity-doc"]
+    # image_bytes = request.data["identity-doc"]
     user = request.user
     print(user)
-    profile = UserProfile.objects.get_or_create(user=user)
-    profile.qr_image = upload_image_to_minio(
-        image_bytes, user.first_name + "identity-doc"
+    # profile = UserProfile.objects.get_or_create(user=user)
+    # profile.qr_image = upload_image_to_minio(
+    #     image_bytes, user.first_name + "identity-doc"
+    # )
+    # profile.save()
+
+    # print(profile[0].user)
+
+    return Response(
+        {"message": "Identity Doc Uploaded successfully", "userId": user.id},
+        status.HTTP_200_OK,
     )
-    profile.save()
-
-    print(profile[0].user)
-
-    return HttpResponse("Success")
 
 
 @permission_classes([permissions.IsAdminUser])
@@ -123,7 +130,7 @@ def generate_qr_view(request, pk):
 
     print(profile[0].user)
 
-    return HttpResponse("Success")
+    return Response({"message": "QR Generated Successfully"}, status.HTTP_200_OK)
 
 
 @api_view(["POST"])
@@ -143,4 +150,22 @@ def updateUserData(request):
         user.role = request.data["role"]
     user.save()
 
-    return HttpResponse("Updated Successfully")
+    return Response(
+        {"message": "User Updated Successfully", "userId": user.id}, status.HTTP_200_OK
+    )
+
+
+@permission_classes([permissions.IsAuthenticated])
+@api_view(["POST"])
+def verify_qr(request):
+
+    user = request.user
+    qr_image = request.data["qr_image"]
+
+    qr_data = decode_base64_qrimage_data(qr_image)
+
+    if user.email == qr_data:
+        PunchIn.objects.create(user=user)
+        return Response({"message": "Punch In Successfully"}, status.HTTP_201_CREATED)
+    else:
+        raise AMSException(message="QR Data do not match")

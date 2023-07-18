@@ -1,10 +1,14 @@
+import base64
 import io
 import json
 import os
 import uuid
 
+import cv2
+import numpy as np
 import qrcode
 from minio import Minio
+from PIL import Image
 
 # from minio.error import ResponseError
 
@@ -77,3 +81,17 @@ def generate_qr_image(user_data, firstName):
     image_url = upload_image_to_minio(image_bytes, firstName)
 
     return image_url
+
+
+def decode_base64_qrimage_data(base64_qrimage):
+
+    detector = cv2.QRCodeDetector()
+
+    bytes_data = base64.b64decode(base64_qrimage)
+    # image = cv2.imread("qr_code.png")
+
+    np_image = cv2.imdecode(np.frombuffer(bytes_data, dtype=np.uint8), cv2.IMREAD_COLOR)
+
+    data, vertices_arr, binary_decode = detector.detectAndDecode(np_image)
+
+    return data
