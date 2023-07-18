@@ -47,8 +47,12 @@ class UserProfile(models.Model):
 
 class PunchIn(models.Model):
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="user", on_delete=models.CASCADE)
     checkin_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.user
+
+    @property
+    def punchin_time(self):
+        return self.checkin_time.strftime("%A, %b %d %Y, %I:%M %p")

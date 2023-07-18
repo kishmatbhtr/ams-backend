@@ -55,10 +55,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PunchInSerializer(serializers.ModelSerializer):
+    email = serializers.ReadOnlyField(
+        source="user.email",
+    )
+    punchin_time = serializers.ReadOnlyField()
+
     class Meta:
 
         model = PunchIn
-        fields = "__all__"
+        fields = ("id", "email", "punchin_time", "user")
+        extra_kwargs = {
+            "user": {"write_only": "True"},
+        }
 
 
 # TODO : create UserProfileSerializer
