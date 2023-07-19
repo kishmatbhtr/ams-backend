@@ -139,7 +139,9 @@ def updateUserData(request):
     {
     "id": 6,
     "password": "apple456",
-    "role": 3
+    "role": 3,
+    "profile_img": "base64",
+    "identity-doc": "base64"
     }
     """
     user = User.objects.get(id=request.data["id"])
@@ -150,6 +152,18 @@ def updateUserData(request):
         user.role = request.data["role"]
     user.save()
 
+    image_bytes = request.data["profile_img"]
+    profile = UserProfile.objects.get_or_create(user=user)
+    image = upload_image_to_minio(image_bytes, user.first_name + "profile-img")
+    profile.qr_image = image
+
+    doc_bytes = request.data["identity-doc"]
+    profile = UserProfile.objects.get_or_create(user=user)
+    profile.qr_image = upload_image_to_minio(
+        doc_bytes, user.first_name + "identity-doc"
+    )
+    profile.save()
+
     return Response(
         {"message": "User Updated Successfully", "userId": user.id}, status.HTTP_200_OK
     )
@@ -158,6 +172,11 @@ def updateUserData(request):
 @permission_classes([permissions.IsAuthenticated])
 @api_view(["POST"])
 def verify_qr(request):
+    """
+    {
+        "qr_image":"base64-image-data",
+    }
+    """
 
     user = request.user
     qr_image = request.data["qr_image"]
