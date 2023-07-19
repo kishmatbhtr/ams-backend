@@ -21,10 +21,27 @@ class LoginTokenSerializer(TokenObtainPairSerializer):
         return token
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ("id", "profile_img", "qr_image")
+
+
 class UserSerializer(serializers.ModelSerializer):
+
+    profile = UserProfileSerializer()
+
     class Meta:
         model = User
-        fields = ("id", "first_name", "last_name", "email", "password", "role")
+        fields = [
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+            "role",
+            "profile",
+        ]
         extra_kwargs = {
             "first_name": {"required": "True"},
             "password": {"write_only": "True"},
@@ -70,9 +87,3 @@ class PunchInSerializer(serializers.ModelSerializer):
 
 
 # TODO : create UserProfileSerializer
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ("id", "profile_img", "qr_img")

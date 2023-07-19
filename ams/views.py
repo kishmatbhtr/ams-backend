@@ -1,3 +1,6 @@
+import base64
+import uuid
+
 from django.contrib.auth import authenticate
 from django.http import HttpResponse
 from rest_framework import permissions, status, viewsets
@@ -14,7 +17,6 @@ from .serializers import (
     LoginSerializer,
     LoginTokenSerializer,
     PunchInSerializer,
-    UserProfileSerializer,
     UserSerializer,
 )
 from .utils import decode_base64_qrimage_data, generate_qr_image, upload_image_to_minio
@@ -86,7 +88,7 @@ def upload_profile_img(request):
     user = request.user
     print(user)
     profile = UserProfile.objects.get_or_create(user=user)
-    image = upload_image_to_minio(image_bytes, user.first_name + "profile-img")
+    image = upload_image_to_minio(image_bytes, user.first_name + "profile-img.png")
     profile.qr_image = image
     profile.save()
 
@@ -107,7 +109,7 @@ def upload_identity_doc(request):
     print(user)
     # profile = UserProfile.objects.get_or_create(user=user)
     # profile.qr_image = upload_image_to_minio(
-    #     image_bytes, user.first_name + "identity-doc"
+    #     image_bytes, user.first_name + "identity-doc.pdf"
     # )
     # profile.save()
 
@@ -141,7 +143,7 @@ def updateUserData(request):
     "password": "apple456",
     "role": 3,
     "profile_img": "base64",
-    "identity-doc": "base64"
+    "identity_doc": "base64"
     }
     """
     user = User.objects.get(id=request.data["id"])
@@ -152,16 +154,23 @@ def updateUserData(request):
         user.role = request.data["role"]
     user.save()
 
-    image_bytes = request.data["profile_img"]
     profile = UserProfile.objects.get_or_create(user=user)
-    image = upload_image_to_minio(image_bytes, user.first_name + "profile-img")
-    profile.qr_image = image
+    random_4digit: str = str(uuid.uuid4().fields[-1])[:4]
+    if request.data["profile_img"]:
+        image_str = request.data["profile_img"]
+        image_bytes = base64.b64decode(image_str)
+        image = upload_image_to_minio(
+            image_bytes, user.first_name + random_4digit + "profile-img.png"
+        )
+        profile.qr_image = image
 
-    doc_bytes = request.data["identity-doc"]
-    profile = UserProfile.objects.get_or_create(user=user)
-    profile.qr_image = upload_image_to_minio(
-        doc_bytes, user.first_name + "identity-doc"
-    )
+    if request.data["identity_doc"]:
+
+        doc_str = request.data["identity_doc"]
+        doc_bytes = base64.b64decode(doc_str)  # convert to bytes
+        profile.identity_doc = upload_image_to_minio(
+            doc_bytes, user.first_name + random_4digit + "identity_doc.pdf"
+        )
     profile.save()
 
     return Response(
