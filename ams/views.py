@@ -17,6 +17,7 @@ from .serializers import (
     LoginSerializer,
     LoginTokenSerializer,
     PunchInSerializer,
+    UserProfileSerializer,
     UserSerializer,
 )
 from .utils import decode_base64_qrimage_data, generate_qr_image, upload_image_to_minio
@@ -80,6 +81,12 @@ class PunchInView(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
 
+class UserProfileView(viewsets.ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.AllowAny]
+
+
 @permission_classes([permissions.IsAuthenticated])
 @api_view(["POST"])
 def upload_profile_img(request):
@@ -127,12 +134,14 @@ def generate_qr_view(request, pk):
 
     user = User.objects.get(id=pk)
     profile = UserProfile.objects.get_or_create(user=user)
-    profile[0].qr_image = generate_qr_image(user.email, user.first_name)
-    profile.save()
+    profile[
+        0
+    ].qr_image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwy2T7AYeXm3uTX35fXsLjmD-bRcviXiMkX05UZB3i&s"
+    profile[0].save()
 
-    print(profile[0].user)
-
-    return Response({"message": "QR Generated Successfully"}, status.HTTP_200_OK)
+    return Response(
+        {"message": "QR Generated Successfully", "userId": user.id}, status.HTTP_200_OK
+    )
 
 
 @api_view(["POST"])
@@ -164,7 +173,7 @@ def updateUserData(request):
                 image_bytes, user.first_name + random_4digit + "profile-img.png"
             )
             profile[0].qr_image = image
-            profile.save()
+            profile[0].save()
     except:
         pass
 
@@ -176,6 +185,7 @@ def updateUserData(request):
             profile[0].identity_doc = upload_image_to_minio(
                 doc_bytes, user.first_name + random_4digit + "identity_doc.pdf"
             )
+            profile[0].save()
     except:
         pass
 
