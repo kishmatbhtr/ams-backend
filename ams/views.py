@@ -53,13 +53,11 @@ class LoginView(CreateAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-
         email = request.data["email"]
         password = request.data["password"]
 
         user = authenticate(username=email, password=password)
         if user is not None:
-
             refresh_token = LoginTokenSerializer.get_token(user)
 
             response_data = {
@@ -90,7 +88,6 @@ class UserProfileView(viewsets.ModelViewSet):
 @permission_classes([permissions.IsAuthenticated])
 @api_view(["POST"])
 def upload_profile_img(request):
-
     image_bytes = request.data["profile_img"]
     user = request.user
     print(user)
@@ -110,7 +107,6 @@ def upload_profile_img(request):
 @permission_classes([permissions.IsAuthenticated])
 @api_view(["POST"])
 def upload_identity_doc(request):
-
     # image_bytes = request.data["identity-doc"]
     user = request.user
     print(user)
@@ -131,12 +127,9 @@ def upload_identity_doc(request):
 @permission_classes([permissions.IsAdminUser])
 @api_view(["GET"])
 def generate_qr_view(request, pk):
-
     user = User.objects.get(id=pk)
     profile = UserProfile.objects.get_or_create(user=user)
-    profile[
-        0
-    ].qr_image = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwy2T7AYeXm3uTX35fXsLjmD-bRcviXiMkX05UZB3i&s"
+    profile[0].qr_image = generate_qr_image(user.email, user.first_name)
     profile[0].save()
 
     return Response(
@@ -172,14 +165,13 @@ def updateUserData(request):
             image = upload_image_to_minio(
                 image_bytes, user.first_name + random_4digit + "profile-img.png"
             )
-            profile[0].qr_image = image
+            profile[0].profile_img = image
             profile[0].save()
     except:
         pass
 
     try:
         if request.data["identity_doc"]:
-
             doc_str = request.data["identity_doc"]
             doc_bytes = base64.b64decode(doc_str)  # convert to bytes
             profile[0].identity_doc = upload_image_to_minio(

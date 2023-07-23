@@ -24,12 +24,12 @@ class LoginTokenSerializer(TokenObtainPairSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ("id", "profile_img", "qr_image")
+        fields = ("id", "profile_img", "qr_image", "identity_doc")
 
 
 class UserSerializer(serializers.ModelSerializer):
 
-    profile = UserProfileSerializer(required=True)
+    profile = UserProfileSerializer(read_only=True)
 
     class Meta:
         model = User

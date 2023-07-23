@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
+from django.utils import timezone
 
 from .managers import UserManager
 
@@ -48,10 +49,10 @@ class UserProfile(models.Model):
 class PunchIn(models.Model):
 
     user = models.ForeignKey(User, related_name="user", on_delete=models.CASCADE)
-    checkin_time = models.DateTimeField(auto_now_add=True)
+    checkin_time = models.DateTimeField(default=timezone.now)
 
     def __str__(self) -> str:
-        return self.user
+        return self.user.email
 
     @property
     def punchin_time(self):
