@@ -12,11 +12,12 @@ from rest_framework.response import Response
 
 from backend.configurations.ams_expection import AMSException
 
-from .models import PunchIn, User, UserProfile
+from .models import PunchIn, PunchOut, User, UserProfile
 from .serializers import (
     LoginSerializer,
     LoginTokenSerializer,
     PunchInSerializer,
+    PunchOutSerializer,
     UserProfileSerializer,
     UserSerializer,
 )
@@ -76,6 +77,12 @@ class LoginView(CreateAPIView):
 class PunchInView(viewsets.ModelViewSet):
     queryset = PunchIn.objects.all()
     serializer_class = PunchInSerializer
+    permission_classes = [permissions.AllowAny]
+
+
+class PunchOutView(viewsets.ModelViewSet):
+    queryset = PunchOut.objects.all()
+    serializer_class = PunchOutSerializer
     permission_classes = [permissions.AllowAny]
 
 

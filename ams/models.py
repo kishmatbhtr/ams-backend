@@ -57,3 +57,17 @@ class PunchIn(models.Model):
     @property
     def punchin_time(self):
         return self.checkin_time.strftime("%A, %b %d %Y, %I:%M %p")
+
+
+
+class PunchOut(models.Model):
+
+    user = models.ForeignKey(User, related_name="punchout_user", on_delete=models.CASCADE)
+    checkout_time = models.DateTimeField(default=timezone.now)
+
+    def __str__(self) -> str:
+        return self.user.email
+
+    @property
+    def punchout_time(self):
+        return self.checkout_time.strftime("%A, %b %d %Y, %I:%M %p")

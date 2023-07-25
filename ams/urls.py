@@ -7,6 +7,7 @@ from . import views as v
 router = routers.DefaultRouter()
 router.register("user", v.UserView)
 router.register("punchin", v.PunchInView)
+router.register("punchout", v.PunchOutView)
 router.register("userprofile", v.UserProfileView)
 
 
