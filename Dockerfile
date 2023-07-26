@@ -16,4 +16,4 @@ COPY . /app
 RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O /usr/local/bin/wait-for-it.sh && \
     chmod +x /usr/local/bin/wait-for-it.sh
 
-EXPOSE 8000
+EXPOSE 8001
