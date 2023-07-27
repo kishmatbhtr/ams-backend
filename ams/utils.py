@@ -12,7 +12,7 @@ from PIL import Image
 # from minio.error import ResponseError
 
 client = Minio(
-    "minio:9000",
+    "minio:9001",
     access_key=os.environ.get("MINIO_ACCESS_KEY"),
     secret_key=os.environ.get("MINIO_SECRET_KEY"),
     secure=False,
@@ -57,7 +57,7 @@ def upload_image_to_minio(image_bytes: bytes, fileName: str) -> str:
         bucket_name, object_name, io.BytesIO(image_bytes), len(image_bytes)
     )
 
-    return f"http://127.0.0.1:9000/{bucket_name}/{object_name}"
+    return f"http://127.0.0.1:9001/{bucket_name}/{object_name}"
 
 
 def image_to_bytes(image) -> bytes:
