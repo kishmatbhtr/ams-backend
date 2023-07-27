@@ -182,7 +182,7 @@ def updateUserData(request):
             doc_str = request.data["identity_doc"]
             doc_bytes = base64.b64decode(doc_str)  # convert to bytes
             profile[0].identity_doc = upload_image_to_minio(
-                doc_bytes, user.first_name + random_4digit + "identity_doc.pdf"
+                doc_bytes, user.first_name + random_4digit + "identity_doc.pdf", "application/pdf"
             )
             profile[0].save()
     except:

@@ -39,7 +39,7 @@ policy: dict = {
 }
 
 
-def upload_image_to_minio(image_bytes: bytes, fileName: str) -> str:
+def upload_image_to_minio(image_bytes: bytes, fileName: str, content_type: str = "application/octet-stream") -> str:
 
     object_name: str = fileName
 
@@ -54,7 +54,7 @@ def upload_image_to_minio(image_bytes: bytes, fileName: str) -> str:
 
     # Upload the image
     client.put_object(
-        bucket_name, object_name, io.BytesIO(image_bytes), len(image_bytes)
+        bucket_name, object_name, io.BytesIO(image_bytes), len(image_bytes), content_type= content_type
     )
 
     return f"http://127.0.0.1:9001/{bucket_name}/{object_name}"
