@@ -1,5 +1,7 @@
 import base64
 import uuid
+from .notifier import emailNotifier
+from django.contrib.auth.password_validation import validate_password
 
 from django.contrib.auth import authenticate
 from django.http import HttpResponse
@@ -116,7 +118,7 @@ def upload_profile_img(request):
 def upload_identity_doc(request):
     # image_bytes = request.data["identity-doc"]
     user = request.user
-    print(user)
+    # print(user)
     # profile = UserProfile.objects.get_or_create(user=user)
     # profile.qr_image = upload_image_to_minio(
     #     image_bytes, user.first_name + "identity-doc.pdf"
@@ -156,12 +158,16 @@ def updateUserData(request):
     }
     """
     user = User.objects.get(id=request.data["id"])
+    changed_password = False
 
     if len(request.data["password"]) != 0:
         user.set_password(request.data["password"])
+        changed_password = True
     if request.data["role"]:
         user.role = request.data["role"]
     user.save()
+    if(changed_password == True):
+         emailNotifier.send_noti(user.email, "Your account password for AMS Login has been changed by admin to " + request.data["password"])
 
     profile = UserProfile.objects.get_or_create(user=user)
     random_4digit: str = str(uuid.uuid4().fields[-1])[:4]
@@ -187,7 +193,7 @@ def updateUserData(request):
             profile[0].save()
     except:
         pass
-
+    
     return Response(
         {"message": "User Updated Successfully", "userId": user.id}, status.HTTP_200_OK
     )
@@ -212,3 +218,38 @@ def verify_qr(request):
         return Response({"message": "Punch In Successfully"}, status.HTTP_201_CREATED)
     else:
         raise AMSException(message="QR Data do not match")
+    
+
+
+@permission_classes([permissions.IsAuthenticated])
+@api_view(["POST"])
+def punchout(request):
+    user = request.user
+
+    PunchOut.objects.create(user=user)
+    return Response({"message": "Punch Out Successfully"}, status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def reset_password(request):
+    print(request.data)
+    """
+    {
+        "email":"xyz@gmail.com",
+        "new_password":"text"
+    }
+    """
+    try:
+        if len(request.data.get("email")) != 0:
+            user = User.objects.get(email=request.data.get("email"))
+            new_passsword = request.data.get("new_password")
+            validate_password(request.data.get("new_password"))
+            user.set_password(new_passsword)
+
+            user.save()
+            return Response(
+                {"message": "Password reset Successfully"}, status.HTTP_201_CREATED
+            )
+
+    except:
+            raise AMSException(message="User not found")

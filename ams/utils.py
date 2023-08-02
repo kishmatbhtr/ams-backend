@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import os
+import uuid
 
 import cv2
 import numpy as np
@@ -76,7 +77,8 @@ def generate_qr_image(user_data, firstName):
 
     qr_image = qrcode.make(user_data)
     image_bytes = image_to_bytes(qr_image)
-    image_url = upload_image_to_minio(image_bytes, firstName + ".png")
+    random_4digit: str = str(uuid.uuid4().fields[-1])[:4]
+    image_url = upload_image_to_minio(image_bytes, firstName + random_4digit + ".png")
 
     return image_url
 

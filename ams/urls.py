@@ -21,4 +21,6 @@ urlpatterns = [
     path("identity-doc/", v.upload_identity_doc),
     path("update-user/", v.updateUserData),
     path("verify-qr/", v.verify_qr),
+    path("reset-password/", v.reset_password),
+    path("create-punchout/", v.punchout),
 ]

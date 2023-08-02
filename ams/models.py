@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 
+
 from .managers import UserManager
 
 
@@ -49,7 +50,7 @@ class UserProfile(models.Model):
 class PunchIn(models.Model):
 
     user = models.ForeignKey(User, related_name="user", on_delete=models.CASCADE)
-    checkin_time = models.DateTimeField(default=timezone.now)
+    checkin_time = models.DateTimeField(default=timezone.now())
 
     def __str__(self) -> str:
         return self.user.email
@@ -63,7 +64,7 @@ class PunchIn(models.Model):
 class PunchOut(models.Model):
 
     user = models.ForeignKey(User, related_name="punchout_user", on_delete=models.CASCADE)
-    checkout_time = models.DateTimeField(default=timezone.now)
+    checkout_time = models.DateTimeField(default=timezone.now())
 
     def __str__(self) -> str:
         return self.user.email
