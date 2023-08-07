@@ -2,6 +2,7 @@ import base64
 import uuid
 from .notifier import emailNotifier
 from django.contrib.auth.password_validation import validate_password
+import dateutil.parser
 
 from django.contrib.auth import authenticate
 from django.http import HttpResponse
@@ -11,6 +12,7 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import CreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from datetime import datetime
 
 from backend.configurations.ams_expection import AMSException
 
@@ -80,6 +82,7 @@ class PunchInView(viewsets.ModelViewSet):
     queryset = PunchIn.objects.all()
     serializer_class = PunchInSerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = CustomPagination
 
 
 class PunchOutView(viewsets.ModelViewSet):
@@ -206,16 +209,22 @@ def verify_qr(request):
     """
     {
         "qr_image":"base64-image-data",
+        "datetimein_value": "moment().toISOString",
     }
     """
 
     user = request.user
     qr_image = request.data["qr_image"]
+    datetimein_value = request.data["datetimein_value"]
+    # datetimein_value = dateutil.parser.isoparse(datetimein_value)
+    print(datetimein_value)
+    splitted_time = datetimein_value.split("+")[0]
+    time = datetime.strptime(splitted_time, "%Y-%m-%dT%H:%M:%S.%f")
 
     qr_data = decode_base64_qrimage_data(qr_image)
 
     if user.email == qr_data:
-        PunchIn.objects.create(user=user)
+        PunchIn.objects.create(user=user, checkin_time=time)
         return Response({"message": "Punch In Successfully"}, status.HTTP_201_CREATED)
     else:
         raise AMSException(message="QR Data do not match")
@@ -226,8 +235,14 @@ def verify_qr(request):
 @api_view(["POST"])
 def punchout(request):
     user = request.user
+    datetimeout_value = request.data["datetimeout_value"]
+    # datetimeout_value = dateutil.parser.isoparse(datetimeout_value)
 
-    PunchOut.objects.create(user=user)
+    print(datetimeout_value)
+    splited_time = datetimeout_value.split("+")[0]
+    time = datetime.strptime(splited_time, "%Y-%m-%dT%H:%M:%S.%f")    
+
+    PunchOut.objects.create(user=user, checkout_time=time)
     return Response({"message": "Punch Out Successfully"}, status.HTTP_201_CREATED)
 
 
