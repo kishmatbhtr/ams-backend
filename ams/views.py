@@ -30,7 +30,7 @@ def home(request):
     return HttpResponse("Hello1")
 
 
-class UserPagination(PageNumberPagination):
+class CustomPagination(PageNumberPagination):
     page_size = 10  # Number of records to display per page
     page_size_query_param = "page_size"
     max_page_size = 100  # Maximum page size allowed
@@ -40,7 +40,7 @@ class UserView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
-    pagination_class = UserPagination
+    pagination_class = CustomPagination
 
     def list(self, reqeust):
         users = User.objects.filter(role=3)
@@ -86,6 +86,7 @@ class PunchOutView(viewsets.ModelViewSet):
     queryset = PunchOut.objects.all()
     serializer_class = PunchOutSerializer
     permission_classes = [permissions.AllowAny]
+    pagination_class = CustomPagination
 
 
 class UserProfileView(viewsets.ModelViewSet):
