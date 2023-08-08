@@ -2,7 +2,6 @@ import base64
 import uuid
 from .notifier import emailNotifier
 from django.contrib.auth.password_validation import validate_password
-import dateutil.parser
 
 from django.contrib.auth import authenticate
 from django.http import HttpResponse
@@ -26,10 +25,6 @@ from .serializers import (
     UserSerializer,
 )
 from .utils import decode_base64_qrimage_data, generate_qr_image, upload_image_to_minio
-
-
-def home(request):
-    return HttpResponse("Hello1")
 
 
 class CustomPagination(PageNumberPagination):
@@ -98,45 +93,6 @@ class UserProfileView(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
 
-@permission_classes([permissions.IsAuthenticated])
-@api_view(["POST"])
-def upload_profile_img(request):
-    image_bytes = request.data["profile_img"]
-    user = request.user
-    print(user)
-    profile = UserProfile.objects.get_or_create(user=user)
-    image = upload_image_to_minio(image_bytes, user.first_name + "profile-img.png")
-    profile[0].qr_image = image
-    profile.save()
-
-    print(profile[0].user)
-
-    return Response(
-        {"message": "Profile Pic Uploaded successfully", "userId": user.id},
-        status.HTTP_200_OK,
-    )
-
-
-@permission_classes([permissions.IsAuthenticated])
-@api_view(["POST"])
-def upload_identity_doc(request):
-    # image_bytes = request.data["identity-doc"]
-    user = request.user
-    # print(user)
-    # profile = UserProfile.objects.get_or_create(user=user)
-    # profile.qr_image = upload_image_to_minio(
-    #     image_bytes, user.first_name + "identity-doc.pdf"
-    # )
-    # profile.save()
-
-    # print(profile[0].user)
-
-    return Response(
-        {"message": "Identity Doc Uploaded successfully", "userId": user.id},
-        status.HTTP_200_OK,
-    )
-
-
 @permission_classes([permissions.IsAdminUser])
 @api_view(["GET"])
 def generate_qr_view(request, pk):
@@ -170,8 +126,12 @@ def updateUserData(request):
     if request.data["role"]:
         user.role = request.data["role"]
     user.save()
-    if(changed_password == True):
-         emailNotifier.send_noti(user.email, "Your account password for AMS Login has been changed by admin to " + request.data["password"])
+    if changed_password == True:
+        emailNotifier.send_noti(
+            user.email,
+            "Your account password for AMS Login has been changed by admin to "
+            + request.data["password"],
+        )
 
     profile = UserProfile.objects.get_or_create(user=user)
     random_4digit: str = str(uuid.uuid4().fields[-1])[:4]
@@ -192,12 +152,14 @@ def updateUserData(request):
             doc_str = request.data["identity_doc"]
             doc_bytes = base64.b64decode(doc_str)  # convert to bytes
             profile[0].identity_doc = upload_image_to_minio(
-                doc_bytes, user.first_name + random_4digit + "identity_doc.pdf", "application/pdf"
+                doc_bytes,
+                user.first_name + random_4digit + "identity_doc.pdf",
+                "application/pdf",
             )
             profile[0].save()
     except:
         pass
-    
+
     return Response(
         {"message": "User Updated Successfully", "userId": user.id}, status.HTTP_200_OK
     )
@@ -228,7 +190,6 @@ def verify_qr(request):
         return Response({"message": "Punch In Successfully"}, status.HTTP_201_CREATED)
     else:
         raise AMSException(message="QR Data do not match")
-    
 
 
 @permission_classes([permissions.IsAuthenticated])
@@ -240,7 +201,7 @@ def punchout(request):
 
     print(datetimeout_value)
     splited_time = datetimeout_value.split("+")[0]
-    time = datetime.strptime(splited_time, "%Y-%m-%dT%H:%M:%S.%f")    
+    time = datetime.strptime(splited_time, "%Y-%m-%dT%H:%M:%S.%f")
 
     PunchOut.objects.create(user=user, checkout_time=time)
     return Response({"message": "Punch Out Successfully"}, status.HTTP_201_CREATED)
@@ -268,4 +229,4 @@ def reset_password(request):
             )
 
     except:
-            raise AMSException(message="User not found")
+        raise AMSException(message="User not found")
