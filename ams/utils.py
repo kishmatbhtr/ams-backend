@@ -1,19 +1,71 @@
 import base64
 import io
+import json
+import os
 import uuid
 
 import cv2
 import numpy as np
 import qrcode
-from fileupload.uploader import ObjectUploaderFactory
+from minio import Minio
+from PIL import Image
+
+# from minio.error import ResponseError
+
+client = Minio(
+    "minio:9001",
+    access_key=os.environ.get("MINIO_ACCESS_KEY"),
+    secret_key=os.environ.get("MINIO_SECRET_KEY"),
+    secure=False,
+)
+
+bucket_name: str = os.environ.get("MINIO_BUCKET_NAME")
+MINIO_URL = os.environ.get("MINIO_URL")
+policy: dict = {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {"AWS": ["*"]},
+            "Action": ["s3:GetObject"],
+            "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+        },
+        {
+            "Effect": "Allow",
+            "Principal": {"AWS": ["*"]},
+            "Action": ["s3:DeleteObject", "s3:PutObject"],
+            "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+            "Condition": {"StringEquals": {"aws:username": ["access-key-value"]}},
+        },
+    ],
+}
 
 
 def upload_image_to_minio(
     image_bytes: bytes, fileName: str, content_type: str = "application/octet-stream"
 ) -> str:
 
-    uploader = ObjectUploaderFactory().generate()
-    uploader.upload_object(image_bytes, fileName, content_type)
+    object_name: str = fileName
+
+    print(object_name)
+
+    # Create bucket if it doesn't exist
+    if not client.bucket_exists(bucket_name):
+        client.make_bucket(bucket_name)
+
+        # Set the policy
+        client.set_bucket_policy(bucket_name, json.dumps(policy))
+
+    # Upload the image
+    client.put_object(
+        bucket_name,
+        object_name,
+        io.BytesIO(image_bytes),
+        len(image_bytes),
+        content_type=content_type,
+    )
+
+    return f"{MINIO_URL}{bucket_name}/{object_name}"
 
 
 def image_to_bytes(image) -> bytes:

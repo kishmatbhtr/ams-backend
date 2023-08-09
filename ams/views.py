@@ -142,6 +142,7 @@ def updateUserData(request):
             image = upload_image_to_minio(
                 image_bytes, user.first_name + random_4digit + "profile-img.png"
             )
+            print(image)
             profile[0].profile_img = image
             profile[0].save()
     except:
