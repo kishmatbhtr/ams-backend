@@ -62,8 +62,6 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -139,7 +137,6 @@ debug.log.*
 
 # Extra
 qrtest.py
-db.sqlite3
 env
 .vscode
 qr_code.png
